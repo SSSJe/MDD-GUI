@@ -1,6 +1,11 @@
 library(RColorBrewer)
 library(ggsci)
+library(spsComps)
 library(ggrepel)
+library(shinythemes)
+library(DT)
+library(bs4Dash)
+library(ggplot2)
 
 mycolors <- unique(c(brewer.pal(name="Dark2", n = 8), 
   brewer.pal(name="Accent", n = 7), brewer.pal(name="Set1", n = 9), 
@@ -8,97 +13,58 @@ mycolors <- unique(c(brewer.pal(name="Dark2", n = 8),
   brewer.pal(name="Paired", n = 5), brewer.pal(name="Paired", n = 10)[7:10], 
   brewer.pal(name="Pastel1", n = 9), brewer.pal(name="Pastel2", n = 7)))
 
-# install.packages("shinythemes")
-# install.packages("shinydashboard")
-library(shinythemes)
-library(DT)
-# devtools::install_github("RinteRface/bs4Dash")
-# library(Seurat)
 
-library(bs4Dash)
-library(ggplot2)
-# func --------------------------------------------------------------------
-
-dropdownButton <- function(label = "", status = c("default", "primary", "success", "info", "warning", "danger"), ..., width = NULL) {
-
-  status <- match.arg(status)
-  # dropdown button content
-  html_ul <- list(
-    class = "dropdown-menu",
-    style = if (!is.null(width)) 
-      paste0("width: ", validateCssUnit(width), ";"),
-    lapply(X = list(...), FUN = tags$li, style = "margin-left: 10px; margin-right: 10px;")
-  )
-  # dropdown button apparence
-  html_button <- list(
-    class = paste0("btn btn-", status," dropdown-toggle"),
-    type = "button", 
-    `data-toggle` = "dropdown"
-  )
-  html_button <- c(html_button, list(label))
-  html_button <- c(html_button, list(tags$span(class = "caret")))
-  # final result
-  tags$div(
-    class = "dropdown",
-    do.call(tags$button, html_button),
-    do.call(tags$ul, html_ul),
-    tags$script(
-      "$('.dropdown-menu').click(function(e) {
-      e.stopPropagation();
-});")
-  )
-  }
-
-###################################################################################
 ui <- dashboardPage(
-  dashboardHeader(title = "Cancer_database"),
-  dashboardSidebar(skin = "light", childIndent = FALSE,
-   
-   sidebarMenu(sidebarHeader(title = 'The imput of Panel'),
+  dark = NULL,
+  help = NULL,
+  dashboardHeader(title = "MDD_GUI"),
+  dashboardSidebar(skin = "light", childIndent = TRUE, minified = FALSE, 
+     
+    checkboxGroupInput(inputId = "check", label = "MajorType", 
+              choices = list("Excitatory Neurons",
+                "Inhibitory Neurons",
+                "Oligodendrocytes",
+                "Astrocytes",
+                "Microglia/Macrophage",
+                "OPCs",
+                "Endothelial"),selected = list("Excitatory Neurons","Inhibitory Neurons","Oligodendrocytes","Astrocytes","Microglia/Macrophage","OPCs","Endothelial")), 
+    textInput("gene",'search for a gene',value = 'PCP4'),
+    column(12, submitButton('search',icon("search")), align = 'center', style = "margin-bottom: 10px;"
+        , style = "margin-top: -10px;")
+  ),
 
-    menuSubItem(fluidRow(column(width = 12,
-      textInput("gene",'search for a gene',value = 'CD3D')),
-                        column(width = 12,
-      submitButton('search',icon("search"))))),
-
-    menuSubItem(
-       column(
-        width = 6,
-        tags$style(".container { border:10px solid steelblue; width: 100%; height: 200px; overflow-y: scroll; }"),
-        dropdownButton(
-          label = "Select the cell types", status = "default", width = 220,
-          tags$div(
-            class = "container",
-            checkboxGroupInput(inputId = "check", label = "Choose", 
-              choices = c("Ex","Inhib","Mix","Oligos","Astros","Micro_Macro","OPCs","Endo"), 
-              selected = c("Ex","Inhib","Mix","Oligos","Astros","Micro_Macro","OPCs","Endo"))
-           )
-          )
-        )
-     )
-   )),
   dashboardBody(
     # Boxes need to be put in a row (or column)
     fluidRow(
-      box(title = 'info', helpText('the information of MDD'), status = "info", width = 6),
-      infoBox(h3(34), "Samples", icon = icon("solid fa-users"), color = 'lightblue', fill = TRUE, width = 3),
-      infoBox(h3(78886), "Cells", icon = icon("solid fa-chart-pie"), color = 'orange', fill = TRUE, width = 3),
+      box(title = 'Info', id= "box_l",
+        helpText('Website for Visualizing the snRNA-seq profile of the Brodmann Area 9 (BA9) of the Post-Mortem Brain tissue of 17 Control Subjects and 17 Major Depressive Disorder (MDD) Cases.',
+          a('(See the paper more information)', href = "https://www.nature.com/articles/s41593-020-0621-y",target="_blank")), 
+        status = "info", width = 6),
+      box(title = 'The flow of the study', id= "box_r", img(src = "MDD_flow.png",style = 'width: 100%;'), status = "info", align='center'),
+      spsComps::heightMatcher("box_l","box_r")
       ),
      fluidRow(
-      # box(, width = 3),
       box(title = 'Box plot of gene exp', status = "primary", solidHeader = TRUE, collapsible = FALSE,
         plotOutput("plot1", height = 250), 
         downloadButton('downloadplot1', 'Download'),width = 6),
-      box(title = 'tSNE plot of MMD', status = "warning", solidHeader = TRUE, collapsible = FALSE,
+      box(title = 'tSNE plot of gene exp', status = "warning", solidHeader = TRUE, collapsible = FALSE,
         plotOutput("plot2", height = 250), 
         downloadButton('downloadplot2', 'Download'),width = 6),
+      box(title = 'Violin plot of gene exp', id = 'box_v', status = "primary", 
+        solidHeader = TRUE, collapsible = FALSE,
+        plotOutput("Violin_plot", height = 250), 
+        downloadButton('downloadplot3', 'Download'),width = 6),
+      box(title = 'tSNE plot of MMD', id = 'box_t', status = "warning", solidHeader = TRUE, collapsible = FALSE,
+        img(src = "MDD_Majortype.png", style = 'width: 80%;'), align='center'),
+      spsComps::heightMatcher("box_v", "box_t"),
+
 
       box(title = 'DataTable',
         DTOutput("dataset"),
         downloadButton('downloadData3', 'Download'), width = 12)
       )
     )
-  
+
 )
 
 server <- function(input, output) {
@@ -107,14 +73,20 @@ server <- function(input, output) {
     })
   
   output$plot1 <- renderPlot({
-    dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('MajorType',input$gene)]
+    dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('subtype','MajorType',input$gene)]
     dat.all$colours <- dat.all[,input$gene]
-    ggplot(dat.all) + geom_boxplot(aes(MajorType, colours, color = MajorType)) + 
-    labs(x='', y='', title='Boxplot') +
-    scale_fill_manual(values = mycolors) +
-    theme_classic() + 
-    theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
-
+    if (length(input$check) == 1) {
+      dat.all$plot_type <- dat.all[,'subtype']
+    }
+    else{
+      dat.all$plot_type <- dat.all[,'MajorType']
+    }
+    ggplot(dat.all) + geom_boxplot(aes(plot_type, colours, color = plot_type)) + 
+      labs(x='', y='', title='Boxplot') +
+      scale_fill_manual(values = mycolors) +
+      theme_classic() + 
+      theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+    
   })
 
 
@@ -123,14 +95,20 @@ server <- function(input, output) {
       paste0('cluster_Boxplot', '_', input$gene, '.pdf', sep = '')
     },
     content = function(file) {
-      dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('MajorType',input$gene)]
+      dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('subtype','MajorType',input$gene)]
       dat.all$colours <- dat.all[,input$gene]
+      if (length(input$check) == 1) {
+        dat.all$plot_type <- dat.all[,'subtype']
+      }
+      else{
+        dat.all$plot_type <- dat.all[,'MajorType']
+      }
       pdf(file, width=6, height=5)
-      p1 <- ggplot(dat.all) + geom_boxplot(aes(MajorType, colours, color = MajorType)) + 
-      labs(x='', y='', title='Boxplot') +
-      scale_fill_manual(values = mycolors) +
-      theme_classic() + 
-      theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+      p1 <- ggplot(dat.all) + geom_boxplot(aes(plot_type, colours, color = plot_type)) + 
+        labs(x='', y='', title='Boxplot') +
+        scale_fill_manual(values = mycolors) +
+        theme_classic() + 
+        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12), axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
       print(p1)
       dev.off()
     }
@@ -146,8 +124,6 @@ server <- function(input, output) {
     theme_classic() + 
     theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),legend.position='right')
     })
-
-
   output$downloadplot2 <- downloadHandler(
     filename = function() {
       paste0('tSNE plot of MMD.pdf')
@@ -166,19 +142,67 @@ server <- function(input, output) {
     },contentType ="image/png"
   )
 
+  output$Violin_plot <- renderPlot({
+    dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('subtype','MajorType',input$gene)]
+    dat.all$colours <- dat.all[,input$gene]
+    if (length(input$check) == 1) {
+        dat.all$plot_type <- dat.all[,'subtype']
+      }
+      else{
+        dat.all$plot_type <- dat.all[,'MajorType']
+      }
+    ggplot(dat.all) + geom_violin(aes(plot_type, colours, color = plot_type)) + 
+      labs(x='', y='', title='Violin plot') +
+      scale_fill_manual(values = mycolors) +
+      theme_classic() + 
+      theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+    
+  })
+  output$downloadplot3 <- downloadHandler(
+    filename = function() {
+      paste0('cluster_Boxplot', '_', input$gene, '.pdf', sep = '')
+    },
+    content = function(file) {
+      dat.all <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('MajorType',input$gene)]
+      dat.all$colours <- dat.all[,input$gene]
+      if (length(input$check) == 1) {
+        dat.all$plot_type <- dat.all[,'subtype']
+      }
+      else{
+        dat.all$plot_type <- dat.all[,'MajorType']
+      }
+      pdf(file, width=6, height=5)
+      p2 <- ggplot(dat.all) + geom_violin(aes(plot_type, colours, color = plot_type)) + 
+        labs(x='', y='', title='Violin plot') +
+        scale_fill_manual(values = mycolors) +
+        theme_classic() + 
+        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+      print(p2)
+      dev.off()
+    }
+  )
+  output$tSNE_plot <- renderImage({
+    
+    outfile <- tempfile(fileext='MDD_subtype.png')
+    # Return a list
+      list(src = outfile,
+           alt = "This is alternate text")
+    }, deleteFile = TRUE)
+
   output$dataset <- renderDT({
-    data.set <- datasetInput()[,c('res.2.5','MajorType','subtype',input$gene)]
+    data.set <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('Clusters','MajorType','subtype',input$gene)]
     })
   output$downloadData3 <- downloadHandler(
     filename = function() {
       paste0('Exp_MMD', input$gene, '.csv', sep='')
     },
     content = function(file) {
-      data.set <- datasetInput()[,c('res.2.5','MajorType','subtype',input$gene)]
+      data.set <- datasetInput()[which(datasetInput()$MajorType %in% input$check),c('Clusters','MajorType','subtype',input$gene)]
       write.csv(data.set, file)
     }
   )
 }
 
 shinyApp(ui, server)
+
 
