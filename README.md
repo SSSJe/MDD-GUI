@@ -10,4 +10,4 @@ There is a method to how to run the MDD-GUI website.
   > install.package('renv')
 5. Next, use `renv::restore()` to install all other packages which are needed when you first open the `MDD-GUI.Rproj` in R;
 6. If you are using RStudio, just open the `app.R` in MDD-GUI directory, and click the `Run App` button to launch the application.
-  <br>Or use the commend below to complete the same thing. <br>  `shiny::runApp(appDir = "MDD-GUI/")`
+  <br>Or use the commend below to complete the same thing. <br>  `shiny::runApp(appDir = "./")`
