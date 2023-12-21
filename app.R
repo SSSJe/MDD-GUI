@@ -27,8 +27,7 @@ ui <- dashboardPage(
                 "Oligodendrocytes",
                 "Astrocytes",
                 "Microglia/Macrophage",
-                "OPCs",
-                "Endothelial"),selected = list("Excitatory Neurons","Inhibitory Neurons","Oligodendrocytes","Astrocytes","Microglia/Macrophage","OPCs","Endothelial")), 
+                "Endothelial"),selected = list("Excitatory Neurons","Inhibitory Neurons","Oligodendrocytes","Astrocytes","Microglia/Macrophage","Endothelial")), 
     textInput("gene",'Search for A Gene',value = 'PCP4'),
     column(12, submitButton('search',icon("search")), align = 'center', style = "margin-bottom: 10px;"
         , style = "margin-top: -10px;")
@@ -53,7 +52,6 @@ ui <- dashboardPage(
       spsComps::heightMatcher("box_l","box_r")
       ),
      fluidRow(
-      # box(, width = 3),
       box(title = 'tSNE plot of MMD', id = 'box_t', status = "warning", 
         solidHeader = TRUE, collapsible = FALSE,
         img(src = "MDD_Majortype.png", style = 'width: 90%;'), align='center'),
@@ -115,10 +113,10 @@ server <- function(session,input, output) {
     dat.all <- datasetInput()
     dat.all$colours <- datasetInput()[,input$gene]
     ggplot(dat.all, aes(tSNE_1, tSNE_2)) + geom_point(aes(color = colours)) + 
-    scale_colour_gradientn(colours=viridis:: plasma(100)) + 
-    labs(x='', y='', title='Scatter Plot',col = 'Gene Expression') +
+    scale_colour_gradientn(colours = viridis:: plasma(100)) + 
+    labs(x = '', y = '', title = 'Scatter Plot',col = 'Gene Expression') +
     theme_classic() + 
-    theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),legend.position='right')
+    theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), legend.position = 'right')
     })
   output$tSNE_download <- downloadHandler(
     filename = function() {
@@ -127,13 +125,13 @@ server <- function(session,input, output) {
     content = function(file) {
       dat.all <- datasetInput()
       dat.all$colours <- datasetInput()[,input$gene]
-      pdf(file, width=6, height=5)
-      p2 <- ggplot(dat.all, aes(tSNE_1, tSNE_2)) + geom_point(aes(color = colours)) + 
-        scale_colour_gradientn(colours=viridis:: plasma(100)) + 
-        labs(x='', y='', title='Scatter Plot',col = 'Gene Expression') +
+      pdf(file, width = 6, height = 5)
+      p1 <- ggplot(dat.all, aes(tSNE_1, tSNE_2)) + geom_point(aes(color = colours)) + 
+        scale_colour_gradientn(colours = viridis:: plasma(100)) + 
+        labs(x = '', y = '', title = 'Scatter Plot',col = 'Gene Expression') +
         theme_classic() + 
-        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),legend.position='right')
-      print(p2)
+        theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), legend.position = 'right')
+      print(p1)
       dev.off()
     },contentType ="image/png"
   )
@@ -148,10 +146,10 @@ server <- function(session,input, output) {
         dat.all$plot_type <- dat.all[,'MajorType']
       }
     ggplot(dat.all) + geom_violin(aes(plot_type, colours, color = plot_type)) + 
-      labs(x='', y='', title='Violin plot') +
+      labs(x = '', y = '', title = 'Violin plot') +
       scale_fill_manual(values = mycolors) +
       theme_classic() + 
-      theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+      theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), axis.text.x = element_text(angle = 45, hjust = 1, vjust =1), legend.position = 'none')
     
   })
   output$Violin_download <- downloadHandler(
@@ -167,12 +165,12 @@ server <- function(session,input, output) {
       else{
         dat.all$plot_type <- dat.all[,'MajorType']
       }
-      pdf(file, width=6, height=5)
+      pdf(file, width = 6, height = 5)
       p2 <- ggplot(dat.all) + geom_violin(aes(plot_type, colours, color = plot_type)) + 
-        labs(x='', y='', title='Violin plot') +
+        labs(x = '', y = '', title = 'Violin plot') +
         scale_fill_manual(values = mycolors) +
         theme_classic() + 
-        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+        theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), axis.text.x = element_text(angle = 45, hjust = 1, vjust =1), legend.position = 'none')
       print(p2)
       dev.off()
     }
@@ -188,10 +186,10 @@ server <- function(session,input, output) {
         dat.all$plot_type <- dat.all[,'MajorType']
       }
       ggplot(dat.all) + geom_boxplot(aes(plot_type, colours, color = plot_type)) + 
-        labs(x='', y='', title='Boxplot') +
+        labs(x = '', y = '', title = 'Boxplot') +
         scale_fill_manual(values = mycolors) +
         theme_classic() + 
-        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(  size=12),axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
+        theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), axis.text.x = element_text(angle = 45, hjust = 1, vjust =1), legend.position = 'none')
   })
 
   output$Box_download <- downloadHandler(
@@ -207,13 +205,13 @@ server <- function(session,input, output) {
       else{
         dat.all$plot_type <- dat.all[,'MajorType']
       }
-      pdf(file, width=6, height=5)
-      p1 <- ggplot(dat.all) + geom_boxplot(aes(plot_type, colours, color = plot_type)) + 
-        labs(x='', y='', title='Boxplot') +
+      pdf(file, width = 6, height = 5)
+      p3 <- ggplot(dat.all) + geom_boxplot(aes(plot_type, colours, color = plot_type)) + 
+        labs(x = '', y = '', title = 'Boxplot') +
         scale_fill_manual(values = mycolors) +
         theme_classic() + 
-        theme(plot.title=element_text(color='black',size=15,face='bold',hjust=0.5),axis.text=element_text(size=12), axis.text.x=element_text(angle=45, hjust=1, vjust=1),legend.position='none')
-      print(p1)
+        theme(plot.title = element_text(color = 'black', size = 15, face = 'bold', hjust = 0.5), axis.text = element_text(size = 12), axis.text.x = element_text(angle = 45, hjust = 1, vjust =1), legend.position = 'none')
+      print(p3)
       dev.off()
     }
   )
